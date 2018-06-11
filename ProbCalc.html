@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<body>
+<table id="results">
+</table>
+<script>
+var rolls = 3;
+var table = "";
+var result = [];
+var temp = [];
+
+var odds = .25;
+
+result.push([1,odds]);
+result.push([0,1-odds]);
+    
+for (var i = 0; i < rolls-1; i++) {
+    temp = [];
+    for (var j = 0; j < result.length; j++) {
+        temp.push([result[j][0] + 1,result[j][1] * odds]);
+        temp.push([result[j][0],result[j][1] * (1-odds)]);
+    }
+    result = temp;
+}
+    
+result = [];
+    
+for (var i = 0; i <= rolls; i++)
+    result[i] = 0;
+    
+for (var i = 0; i < temp.length; i++) {
+    result[temp[i][0]] += temp[i][1];
+}
+    
+for (var i = result.length-1; i >= 0; i--) {
+    table += "<tr><td>" + i + " : " + result[i] + "</td></tr>";
+}
+    
+document.getElementById("results").innerHTML = table;
+</script>
+
+</body>
+</html> 
