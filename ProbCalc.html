@@ -1,42 +1,132 @@
 <!DOCTYPE html>
 <html>
-<body>
-<table id="results">
-</table>
-<script>
-var rolls = 3;
-var table = "";
-var result = [];
-var temp = [];
-
-var odds = .25;
-
-result.push([1,odds]);
-result.push([0,1-odds]);
-    
-for (var i = 0; i < rolls-1; i++) {
-    temp = [];
-    for (var j = 0; j < result.length; j++) {
-        temp.push([result[j][0] + 1,result[j][1] * odds]);
-        temp.push([result[j][0],result[j][1] * (1-odds)]);
+<style>
+    input {
+        width:1.5em; 
+        text-align:center;
     }
-    result = temp;
-}
     
-result = [];
+    span {
+        color:red;
+        font-weight:bold;
+    }
     
-for (var i = 0; i <= rolls; i++)
-    result[i] = 0;
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
     
-for (var i = 0; i < temp.length; i++) {
-    result[temp[i][0]] += temp[i][1];
-}
+    table {
+        float:left;
+    }
     
-for (var i = result.length-1; i >= 0; i--) {
-    table += "<tr><td>" + i + " : " + result[i] + "</td></tr>";
-}
+    button {
+        margin-bottom: 1em;
+    }
     
-document.getElementById("results").innerHTML = table;
+    /* For Firefox */
+    input[type='number'] {
+        -moz-appearance:textfield;
+    }
+    /* Webkit browsers like Safari and Chrome */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+</style>
+<body>
+<form id="userInput">
+    <p>Rolling against an AC/CR of <input type="number" value="16"> for <input type="number" value="3"> rolls, with a bonus of <input type="number" value="5">.</p>
+    <p><span>Warning:</span> Code is poorly optimized. If you set rolls higher than ~20 you're gonna be here a while. But if you feel like you need to, you're doing something wrong.</p>
+</form> 
+<button onclick="makeComparison()">Calculate</button>
+<div id="results">
+</div>
+<script>
+    var input;
+    var rolls;
+    function makeComparison() {
+        input = document.getElementById("userInput").elements;
+        rolls = input[1].value;
+        var finalTable = legend();
+        finalTable += calcVals(0);
+        finalTable += calcVals(1);
+        finalTable += calcVals(2);
+        document.getElementById("results").innerHTML = finalTable;
+    }
+    
+    function calcVals(given) {
+        var table = "<table>";
+        var result = [];
+        var temp = [];
+        var odds,bonus;
+        
+        odds = (21-input[0].value)/20;
+        bonus = input[2].value;
+        
+        if (given == 0) {
+            table += "<tr><th>No Bonus</th></tr>";
+            result.push([1,odds]);
+            result.push([0,1-odds]);
+        }
+        else if (given == 1) {
+            table += "<tr><th>Applied Before</th></tr>";
+            result.push([1,(odds + bonus/20)]);
+            result.push([0,1-(odds + bonus/20)]);
+        }
+        else if (given == 2) {
+            table += "<tr><th>Applied After</th></tr>";
+            result.push([1,odds,0]);
+            result.push([1,odds,1]);
+            result.push([0,1-(odds + bonus/20),0]);
+        }
+        
+        for (var i = 0; i < rolls-1; i++) {
+            console.log(result);
+            temp = [];
+            for (var j = 0; j < result.length; j++) {
+                if (given == 2 && i == rolls-2 && !result[j][2]) {
+                    temp.push([result[j][0] + 1, result[j][1] * .5]);
+                    temp.push([result[j][0], result[j][1] * .5]);
+                }
+                else if (given == 2 && !result[j][2]) {
+                    temp.push([result[j][0] + 1,result[j][1] * odds,result[j][2]]);
+                    temp.push([result[j][0] + 1,result[j][1] * odds,1]);
+                    temp.push([result[j][0],result[j][1] * (1-(odds + bonus/20)),result[j][2]]);
+                }
+                else {
+                    temp.push([result[j][0] + 1,result[j][1] * odds,result[j][2]]);
+                    temp.push([result[j][0],result[j][1] * (1-odds),result[j][2]]);
+                }
+            }
+            result = temp;
+        }
+        console.log(result);
+        result = [];
+
+        for (var i = 0; i <= rolls; i++)
+            result[i] = 0;
+
+        for (var i = 0; i < temp.length; i++) {
+            result[temp[i][0]] += temp[i][1];
+        }
+
+        for (var i = result.length-1; i >= 0; i--) {
+            table += "<tr><td>" + Math.round(result[i]*100000)/1000 + "%</td></tr>";
+        }
+        
+        table += "</table>"
+        return table;
+    }
+    
+    function legend() {
+        var legendTable = "<table><tr><th>Successes</th></tr>";
+        for (var i = rolls; i >= 0; i--)
+            legendTable += "<tr><td>" + i + "</td></tr>";
+        legendTable += "</table>";
+        return legendTable;
+    }
 </script>
 
 </body>
